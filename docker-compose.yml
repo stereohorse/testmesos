@@ -1,0 +1,85 @@
+version: "3"
+services:
+  zoo-1:
+    image: zookeeper:3.4.10
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zoo-1:2888:3888 server.2=zoo-2:2888:3888 server.3=zoo-3:2888:3888
+
+  zoo-2:
+    image: zookeeper:3.4.10
+    environment:
+      ZOO_MY_ID: 2
+      ZOO_SERVERS: server.1=zoo-1:2888:3888 server.2=zoo-2:2888:3888 server.3=zoo-3:2888:3888
+
+  zoo-3:
+    image: zookeeper:3.4.10
+    environment:
+      ZOO_MY_ID: 3
+      ZOO_SERVERS: server.1=zoo-1:2888:3888 server.2=zoo-2:2888:3888 server.3=zoo-3:2888:3888
+
+  mesos-master-1:
+    image: mesosphere/mesos-master:1.3.0
+    ports:
+      - 5050:5050
+    environment:
+      MESOS_PORT: 5050
+      MESOS_ZK: zk://zoo-1:2181,zoo-2:2181,zoo-3:2181/mesos
+      MESOS_QUORUM: 2
+      MESOS_REGISTRY: in_memory
+      MESOS_LOG_DIR: /var/log/mesos
+      MESOS_WORK_DIR: /var/tmp/mesos
+    depends_on:
+      - zoo-1
+      - zoo-2
+      - zoo-3
+
+  mesos-master-2:
+    image: mesosphere/mesos-master:1.3.0
+    ports:
+      - 5051:5050
+    environment:
+      MESOS_PORT: 5050
+      MESOS_ZK: zk://zoo-1:2181,zoo-2:2181,zoo-3:2181/mesos
+      MESOS_QUORUM: 2
+      MESOS_REGISTRY: in_memory
+      MESOS_LOG_DIR: /var/log/mesos
+      MESOS_WORK_DIR: /var/tmp/mesos
+    depends_on:
+      - zoo-1
+      - zoo-2
+      - zoo-3
+
+  mesos-master-3:
+    image: mesosphere/mesos-master:1.3.0
+    ports:
+      - 5052:5050
+    environment:
+      MESOS_PORT: 5050
+      MESOS_ZK: zk://zoo-1:2181,zoo-2:2181,zoo-3:2181/mesos
+      MESOS_QUORUM: 2
+      MESOS_REGISTRY: in_memory
+      MESOS_LOG_DIR: /var/log/mesos
+      MESOS_WORK_DIR: /var/tmp/mesos
+    depends_on:
+      - zoo-1
+      - zoo-2
+      - zoo-3
+
+  mesos-slave-1:
+    image: mesosphere/mesos-slave:1.3.0
+    privileged: true
+    environment:
+      MESOS_PORT: 5051
+      MESOS_MASTER: zk://zoo-1:2181,zoo-2:2181,zoo-3:2181/mesos
+      MESOS_SWITCH_USER: 0
+      MESOS_CONTAINERIZERS: docker,mesos
+      MESOS_LOG_DIR: /var/log/mesos
+      MESOS_WORK_DIR: /var/tmp/mesos
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - mesos-master-1
+      - mesos-master-2
+      - mesos-master-3
+
