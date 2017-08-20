@@ -1,5 +1,11 @@
 plugins {
+    id 'io.franzbecker.gradle-lombok' version '1.10'
     id 'java'
+}
+
+lombok {
+    version = '1.16.18'
+    sha256 = ''
 }
 
 repositories {
@@ -8,4 +14,7 @@ repositories {
 
 dependencies {
     compile 'junit:junit:4.12'
+    compile 'com.spotify:docker-client:8.9.0'
+
+//    testCompile 'com.squareup.okhttp3:okhttp:3.8.1'
 }
